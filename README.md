@@ -85,7 +85,7 @@ jobs:
 
 ### Install go-licenses with aqua
 
-This action can also install tools such as [google/go-licenses](actions/install/aqua/imports) via `go install`.
+This action can also install tools such as [google/go-licenses](install/aqua/imports) via `go install`.
 
 ```yaml
 jobs:
@@ -134,7 +134,7 @@ jobs:
 
       # Install aqua and set AQUA_CONFIG so that go-licenses can be run.
       - name: Install aqua
-        uses: suzuki-shunsuke/download-go-module-action/actions/install@main
+        uses: suzuki-shunsuke/download-go-module-action/install@main
         with:
           aqua_version: v2.64.0
 

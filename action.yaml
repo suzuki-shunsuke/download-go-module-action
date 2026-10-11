@@ -35,7 +35,7 @@ runs:
 
     - name: Install go-install packages with aqua
       if: inputs.aqua_packages != ''
-      uses: $/actions/install
+      uses: $/install
       with:
         aqua_version: ${{inputs.aqua_version}}
         packages: ${{inputs.aqua_packages}}

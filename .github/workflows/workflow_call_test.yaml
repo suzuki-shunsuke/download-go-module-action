@@ -57,7 +57,7 @@ jobs:
           tar -C "$gomodcache" -xzf "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
 
       - name: Install go-licenses
-        uses: $/actions/install
+        uses: $/install
         with:
           aqua_version: v2.64.0
 
