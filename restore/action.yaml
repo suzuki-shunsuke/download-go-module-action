@@ -10,6 +10,10 @@ inputs:
     description: GitHub artifact name
     required: false
     default: gomodule
+outputs:
+  aqua_config_path:
+    description: The file path to aqua.yaml
+    value: ${{steps.install.outputs.aqua_config_path}}
 runs:
   using: composite
   steps:
@@ -28,6 +32,7 @@ runs:
 
     - name: Install go-licenses
       if: inputs.aqua_version != ''
+      id: install
       uses: $/install
       with:
         aqua_version: ${{inputs.aqua_version}}

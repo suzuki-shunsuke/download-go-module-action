@@ -9,12 +9,22 @@ inputs:
       command and package names to be installed.
       If this is empty, only links to packages are created, so packages extracted from the artifact can be used.
     required: false
+outputs:
+  aqua_config_path:
+    description: The file path to aqua.yaml
+    value: ${{steps.path.outputs.value}}
 runs:
   using: composite
   steps:
     - shell: bash
-      run: cp -Rf "${GITHUB_ACTION_PATH}/aqua" "$GITHUB_WORKSPACE/../.aqua"
+      id: path
+      run: |
+        config=${GITHUB_ACTION_PATH}/aqua/aqua.yaml
+        echo "AQUA_GLOBAL_CONFIG=${config}:${AQUA_GLOBAL_CONFIG:-}" >> "$GITHUB_ENV"
+        echo "value=$config" >> "$GITHUB_OUTPUT"
     - uses: aquaproj/aqua-installer@82d0e83878a8657c4a6f2ff1755d3bfbfc67f329 # v4.1.0
       with:
         aqua_version: ${{inputs.aqua_version}}
         packages: ${{inputs.packages}}
+        # -a is required to install packages in AQUA_GLOBAL_CONFIG
+        aqua_opts: ${{ inputs.packages == '' && '-l -a' || '-a' }}
