@@ -2,14 +2,14 @@
 
 A GitHub Action and reusable workflow to download Go modules and upload them as artifacts, separating the download job that requires `id-token: write` from the build job.
 
-[Reusable Workflow](.github/workflows/download.yaml), [install action](install/action.yaml), [download action](download/action.yaml)
+[Reusable Workflow](.github/workflows/download.yaml), [install action](install/action.yaml), [restore action](restore/action.yaml)
 
 ## Motivation
 
 We use [flatt-security/setup-takumi-guard-golang](https://github.com/flatt-security/setup-takumi-guard-golang), a GitHub Action that routes `go mod download` through a security proxy.
 setup-takumi-guard-golang requires the `id-token: write` permission for authentication, but this permission should not be granted to the build job.
 If it were, malicious code running in the build job could abuse it to sign malicious artifacts or assume AWS IAM roles or Google Cloud service accounts via OIDC.
-To avoid this, this action downloads Go modules in a separate job and uploads them as artifacts, which the build job then downloads.
+To avoid this, this action downloads Go modules in a separate job and uploads them as artifacts, which the build job then restores.
 
 ## Usage
 
@@ -56,8 +56,8 @@ jobs:
           go-version-file: go.mod
           cache: false
           
-      - name: Download Go modules
-        uses: suzuki-shunsuke/download-go-module-action/download@main
+      - name: Restore Go modules
+        uses: suzuki-shunsuke/download-go-module-action/restore@main
 
       - name: go test
         run: go test -v ./... -race -covermode=atomic
@@ -81,7 +81,7 @@ jobs:
 This action can also install tools such as [google/go-licenses](install/aqua/imports) via `go install`.
 
 1. Set `aqua_version` and `aqua_packages` to [suzuki-shunsuke/download-go-module-action/.github/workflows/download.yaml](.github/workflows/download.yaml) or [suzuki-shunsuke/download-go-module-action](action.yaml)
-2. Set `aqua_version` to [suzuki-shunsuke/download-go-module-action/download](download/action.yaml)
+2. Set `aqua_version` to [suzuki-shunsuke/download-go-module-action/restore](restore/action.yaml)
 
 ```yaml
 jobs:
@@ -116,8 +116,8 @@ jobs:
           go-version-file: go.mod
           cache: false
           
-      - name: Download Go modules
-        uses: suzuki-shunsuke/download-go-module-action/download@main
+      - name: Restore Go modules
+        uses: suzuki-shunsuke/download-go-module-action/restore@main
         with:
           aqua_version: v2.64.0
 

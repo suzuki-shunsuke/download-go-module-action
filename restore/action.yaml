@@ -1,5 +1,5 @@
-name: download
-description: download Go modules and go_install packages
+name: restore
+description: Restore Go modules and go_install packages from GitHub artifacts
 inputs:
   aqua_version:
     description: |
