@@ -1,0 +1,48 @@
+---
+name: Download Go Modules and Upload them to artifacts
+on:
+  workflow_call:
+    inputs:
+      aqua_version:
+        required: true
+        type: string
+      aqua_packages:
+        required: false
+        type: string
+      go-version-file:
+        required: true
+        type: string
+      artifact_name:
+        required: false
+        type: string
+        default: gomodule
+    secrets:
+      TAKUMI_GUARD_BOT_ID:
+        required: false
+
+permissions: {}
+
+env:
+  AQUA_LOG_COLOR: always
+
+jobs:
+  download:
+    timeout-minutes: 20
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download Go Modules and upload them to GitHub Artifacts
+        uses: $/.
+        with:
+          go-version-file: ${{inputs.go-version-file}}
+          takumi_guard_bot_id: ${{secrets.TAKUMI_GUARD_BOT_ID}}
+          aqua_version: ${{inputs.aqua_version}}
+          packages: ${{inputs.aqua_packages}}
+          artifact_name: ${{inputs.artifact_name}}
