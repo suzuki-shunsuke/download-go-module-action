@@ -26,3 +26,5 @@ runs:
       with:
         aqua_version: ${{inputs.aqua_version}}
         packages: ${{inputs.packages}}
+        # -a is required to install packages in AQUA_GLOBAL_CONFIG
+        aqua_opts: ${{ inputs.packages == '' && '-l -a' || '-a' }}
