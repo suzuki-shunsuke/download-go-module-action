@@ -4,14 +4,15 @@ on:
   workflow_call:
     inputs:
       aqua_version:
-        required: true
+        required: false
         type: string
       aqua_packages:
         required: false
         type: string
       go-version-file:
-        required: true
         type: string
+        required: false
+        default: go.mod
       artifact_name:
         required: false
         type: string
