@@ -1,9 +1,9 @@
-name: Download Go Modules
-description: Download Go Modules and Upload them to artifacts
+name: Download Go modules
+description: Download Go modules and upload them as artifacts
 author: Shunsuke Suzuki
 inputs:
   aqua_version:
-    description: aqua version
+    description: aqua version (v2.64.0 or later). Required if aqua_packages is set
     required: false
   aqua_packages:
     description: aqua go_install packages to be installed
@@ -33,7 +33,7 @@ runs:
       with:
         bot-id: ${{inputs.takumi_guard_bot_id}}
 
-    - name: Install go-licenses
+    - name: Install go-install packages with aqua
       if: inputs.aqua_packages != ''
       uses: $/actions/install
       with:

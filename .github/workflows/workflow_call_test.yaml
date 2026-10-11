@@ -56,8 +56,8 @@ jobs:
           mkdir -p "$gomodcache"
           tar -C "$gomodcache" -xzf "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
 
-      - name: Install tools
-        uses: aquaproj/aqua-installer@82d0e83878a8657c4a6f2ff1755d3bfbfc67f329 # v4.1.0
+      - name: Install go-licenses
+        uses: $/actions/install
         with:
           aqua_version: v2.64.0
 
@@ -66,7 +66,6 @@ jobs:
           root_dir=$(aqua root-dir)
           mkdir -p "$root_dir"
           tar -C "$root_dir" -xzf "$RUNNER_TEMP/gomodule/go_install.tar.gz"
-
 
       - name: go test
         run: go test -v ./... -race -covermode=atomic

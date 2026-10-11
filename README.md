@@ -79,8 +79,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    with:
-      takumi_guard_bot_id: ${{secrets.TAKUMI_GUARD_BOT_ID}}
+    secrets:
+      TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
 ```
 
 ### Install go-licenses with aqua
@@ -95,16 +95,16 @@ jobs:
       contents: read
       id-token: write
     with:
-      takumi_guard_bot_id: ${{secrets.TAKUMI_GUARD_BOT_ID}}
       aqua_version: v2.64.0
       aqua_packages: go-licenses
+    secrets:
+      TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
 
   test:
     timeout-minutes: 30
     runs-on: ubuntu-26.04
     needs: gomodule
     permissions:
-      pull-requests: write
       contents: read
     env:
       GOPROXY: "off"
@@ -132,8 +132,9 @@ jobs:
           mkdir -p "$gomodcache"
           tar -C "$gomodcache" -xzf "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
 
-      - name: Install tools
-        uses: aquaproj/aqua-installer@82d0e83878a8657c4a6f2ff1755d3bfbfc67f329 # v4.1.0
+      # Install aqua and set AQUA_CONFIG so that go-licenses can be run.
+      - name: Install aqua
+        uses: suzuki-shunsuke/download-go-module-action/actions/install@main
         with:
           aqua_version: v2.64.0
 
@@ -145,4 +146,7 @@ jobs:
 
       - name: go test
         run: go test -v ./... -race -covermode=atomic
+
+      - name: Validate Go licenses
+        run: go-licenses check --disallowed_types=forbidden,restricted,unknown ./...
 ```

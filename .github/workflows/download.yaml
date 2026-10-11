@@ -1,5 +1,5 @@
 ---
-name: Download Go Modules and Upload them to artifacts
+name: Download Go modules and upload them as artifacts
 on:
   workflow_call:
     inputs:
@@ -39,7 +39,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Download Go Modules and upload them to GitHub Artifacts
+      - name: Download Go modules and upload them as artifacts
         uses: $/.
         with:
           go-version-file: ${{inputs.go-version-file}}
