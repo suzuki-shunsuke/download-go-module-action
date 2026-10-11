@@ -44,5 +44,5 @@ jobs:
           go-version-file: ${{inputs.go-version-file}}
           takumi_guard_bot_id: ${{secrets.TAKUMI_GUARD_BOT_ID}}
           aqua_version: ${{inputs.aqua_version}}
-          packages: ${{inputs.aqua_packages}}
+          aqua_packages: ${{inputs.aqua_packages}}
           artifact_name: ${{inputs.artifact_name}}
