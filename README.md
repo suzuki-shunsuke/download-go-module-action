@@ -2,12 +2,14 @@
 
 A GitHub Action and reusable workflow to download Go modules and upload them as artifacts, separating the download job that requires `id-token: write` from the build job.
 
+[Reusable Workflow](.github/workflows/download.yaml), [restore action](restore/action.yaml)
+
 ## Motivation
 
 We use [flatt-security/setup-takumi-guard-golang](https://github.com/flatt-security/setup-takumi-guard-golang), a GitHub Action that routes `go mod download` through a security proxy.
 setup-takumi-guard-golang requires the `id-token: write` permission for authentication, but this permission should not be granted to the build job.
 If it were, malicious code running in the build job could abuse it to sign malicious artifacts or assume AWS IAM roles or Google Cloud service accounts via OIDC.
-To avoid this, this action downloads Go modules in a separate job and uploads them as artifacts, which the build job then downloads.
+To avoid this, this action downloads Go modules in a separate job and uploads them as artifacts, which the build job then restores.
 
 ## Usage
 
@@ -53,18 +55,9 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-
-      - name: Download Go modules
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: gomodule
-          path: ${{ runner.temp }}/gomodule
-
-      - name: Extract Go modules
-        run: |
-          gomodcache=$(go env GOMODCACHE)
-          mkdir -p "$gomodcache"
-          tar -C "$gomodcache" -xzf "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
+          
+      - name: Restore Go modules
+        uses: suzuki-shunsuke/download-go-module-action/restore@main
 
       - name: go test
         run: go test -v ./... -race -covermode=atomic
@@ -86,6 +79,9 @@ jobs:
 ### Install go-licenses with aqua
 
 This action can also install tools such as [google/go-licenses](install/aqua/imports) via `go install`.
+
+1. Set `aqua_version` and `aqua_packages` to [suzuki-shunsuke/download-go-module-action/.github/workflows/download.yaml](.github/workflows/download.yaml) or [suzuki-shunsuke/download-go-module-action](action.yaml)
+2. Set `aqua_version` to [suzuki-shunsuke/download-go-module-action/restore](restore/action.yaml)
 
 ```yaml
 jobs:
@@ -119,30 +115,11 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-
-      - name: Download Go modules and go-install packages (go-licenses)
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: gomodule
-          path: ${{ runner.temp }}/gomodule
-
-      - name: Extract Go modules
-        run: |
-          gomodcache=$(go env GOMODCACHE)
-          mkdir -p "$gomodcache"
-          tar -C "$gomodcache" -xzf "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
-
-      # Install aqua and set AQUA_CONFIG so that go-licenses can be run.
-      - name: Install aqua
-        uses: suzuki-shunsuke/download-go-module-action/install@main
+          
+      - name: Restore Go modules
+        uses: suzuki-shunsuke/download-go-module-action/restore@main
         with:
           aqua_version: v2.64.0
-
-      - name: Extract Go install packages (go-licenses)
-        run: |
-          root_dir=$(aqua root-dir)
-          mkdir -p "$root_dir"
-          tar -C "$root_dir" -xzf "$RUNNER_TEMP/gomodule/go_install.tar.gz"
 
       - name: go test
         run: go test -v ./... -race -covermode=atomic

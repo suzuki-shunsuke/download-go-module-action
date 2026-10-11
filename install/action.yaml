@@ -1,5 +1,5 @@
 name: install
-description: install tools with aqua
+description: Internal action to install tools with aqua. Not intended for direct use.
 inputs:
   aqua_version:
     description: aqua version (v2.64.0 or later)
