@@ -28,7 +28,7 @@ runs:
       run: |
         gomodcache=$(go env GOMODCACHE)
         mkdir -p "$gomodcache"
-        tar -C "$gomodcache" -xzf "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
+        (cd "$gomodcache" && tar -xzf -) < "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
 
     - name: Install go-licenses
       if: inputs.aqua_version != ''
@@ -43,4 +43,4 @@ runs:
       run: |
         root_dir=$(aqua root-dir)
         mkdir -p "$root_dir"
-        tar -C "$root_dir" -xzf "$RUNNER_TEMP/gomodule/go_install.tar.gz"
+        (cd "$root_dir" && tar -xzf -) < "$RUNNER_TEMP/gomodule/go_install.tar.gz"

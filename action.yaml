@@ -48,13 +48,13 @@ runs:
       shell: bash
       run: |
         mkdir -p "$RUNNER_TEMP/gomodule"
-        tar -C "$(go env GOMODCACHE)" -czf "$RUNNER_TEMP/gomodule/gomodcache.tar.gz" cache/download
+        (cd "$(go env GOMODCACHE)" && tar -czf - cache/download) > "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
 
     - name: Archive go_install packages
       if: inputs.aqua_packages != ''
       shell: bash
       run: |
-        tar -C "$(aqua root-dir)" -czf "$RUNNER_TEMP/gomodule/go_install.tar.gz" pkgs/go_install
+        (cd "$(aqua root-dir)" && tar -czf - pkgs/go_install) > "$RUNNER_TEMP/gomodule/go_install.tar.gz"
 
     - name: Upload Go modules and go_install packages
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
