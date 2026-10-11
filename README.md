@@ -2,7 +2,7 @@
 
 A GitHub Action and reusable workflow to download Go modules and upload them as artifacts, separating the download job that requires `id-token: write` from the build job.
 
-[Reusable Workflow](.github/workflows/download.yaml), [install action](install/action.yaml), [restore action](restore/action.yaml)
+[Reusable Workflow](.github/workflows/download.yaml), [restore action](restore/action.yaml)
 
 ## Motivation
 
