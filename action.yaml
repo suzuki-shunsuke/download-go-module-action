@@ -48,7 +48,10 @@ runs:
       shell: bash
       run: |
         mkdir -p "$RUNNER_TEMP/gomodule"
-        (cd "$(go env GOMODCACHE)" && tar -czf - cache/download) > "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
+        gomodcache=$(go env GOMODCACHE)
+        # The directory doesn't exist if the module has no dependency
+        mkdir -p "$gomodcache/cache/download"
+        (cd "$gomodcache" && tar -czf - cache/download) > "$RUNNER_TEMP/gomodule/gomodcache.tar.gz"
 
     - name: Archive go_install packages
       if: inputs.aqua_packages != ''
