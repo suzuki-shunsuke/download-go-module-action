@@ -9,6 +9,11 @@ inputs:
       command and package names to be installed.
       If this is empty, only links to packages are created, so packages extracted from the artifact can be used.
     required: false
+  enable_aqua_install:
+    description: |
+      If this is false, only aqua is installed and `aqua i` isn't run.
+    required: false
+    default: "true"
 outputs:
   aqua_config_path:
     description: The file path to aqua.yaml
@@ -26,5 +31,6 @@ runs:
       with:
         aqua_version: ${{inputs.aqua_version}}
         packages: ${{inputs.packages}}
+        enable_aqua_install: ${{inputs.enable_aqua_install}}
         # -a is required to install packages in AQUA_GLOBAL_CONFIG
         aqua_opts: ${{ inputs.packages == '' && '-l -a' || '-a' }}

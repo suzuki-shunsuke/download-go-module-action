@@ -33,16 +33,69 @@ runs:
       with:
         bot-id: ${{inputs.takumi_guard_bot_id}}
 
-    - name: Install go_install packages with aqua
+    - name: Install aqua
       if: inputs.aqua_packages != ''
       uses: $/install
       with:
         aqua_version: ${{inputs.aqua_version}}
-        packages: ${{inputs.aqua_packages}}
+        # go_install packages are installed in the next step in parallel with go mod download
+        enable_aqua_install: "false"
 
-    - name: Download Go modules
+    # go mod download is mostly network-bound while installing go_install packages is mostly CPU-bound,
+    # so running them in parallel shortens the job.
+    - name: Download Go modules and install go_install packages with aqua
       shell: bash
-      run: go mod download
+      env:
+        PKGS: ${{inputs.aqua_packages}}
+        GITHUB_TOKEN: ${{github.token}}
+      run: |
+        set -u
+        aqua_pid=
+        if [ -n "$PKGS" ]; then
+          set -f
+          pkgs=()
+          while IFS= read -r line; do
+            line=${line%%#*}
+            pkgs+=($line)
+          done <<< "$PKGS"
+          set +f
+          aqua_log="$RUNNER_TEMP/download-go-module-action-aqua.log"
+          # Use a dedicated GOMODCACHE so that modules of go_install packages aren't included in the artifact.
+          # -modcacherw allows the runner to remove it.
+          (
+            start=$SECONDS
+            code=0
+            GOMODCACHE="$RUNNER_TEMP/download-go-module-action-aqua-gomodcache" \
+              GOFLAGS="${GOFLAGS:+$GOFLAGS }-modcacherw" \
+              aqua i -a -- "${pkgs[@]}" || code=$?
+            echo "[INFO] aqua i took $((SECONDS - start))s" >&2
+            exit "$code"
+          ) > "$aqua_log" 2>&1 &
+          aqua_pid=$!
+        fi
+
+        start=$SECONDS
+        go_code=0
+        go mod download || go_code=$?
+        echo "[INFO] go mod download took $((SECONDS - start))s" >&2
+
+        aqua_code=0
+        if [ -n "$aqua_pid" ]; then
+          wait "$aqua_pid" || aqua_code=$?
+          echo "::group::aqua i"
+          cat "$aqua_log"
+          echo "::endgroup::"
+        fi
+
+        if [ "$go_code" -ne 0 ]; then
+          echo "::error::go mod download failed" >&2
+        fi
+        if [ "$aqua_code" -ne 0 ]; then
+          echo "::error::aqua i failed" >&2
+        fi
+        if [ "$go_code" -ne 0 ] || [ "$aqua_code" -ne 0 ]; then
+          exit 1
+        fi
 
     - name: Archive Go modules
       shell: bash
