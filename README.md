@@ -76,6 +76,22 @@ jobs:
       TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
 ```
 
+By default, the reusable workflow checks out the default ref of actions/checkout, which is the merge commit on `pull_request` events.
+If the job restoring the modules checks out a different ref, set `ref` so that the same `go.mod` is used.
+
+```yaml
+jobs:
+  gomodule:
+    uses: suzuki-shunsuke/download-go-module-action/.github/workflows/download.yaml@main
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      ref: ${{github.event.pull_request.head.sha}}
+    secrets:
+      TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
+```
+
 ### Install go-licenses with aqua
 
 This action can also install tools such as [google/go-licenses](install/aqua/imports) via `go install`.
