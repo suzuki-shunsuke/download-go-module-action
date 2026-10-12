@@ -25,6 +25,48 @@ jobs:
     secrets:
       TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
 
+  # Test the case where no go_install package is installed and the Go module has no dependency.
+  # GOMODCACHE isn't created by go mod download in this case.
+  gomodule-without-packages:
+    uses: $/.github/workflows/download.yaml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      artifact_name: gomodule-without-packages
+    secrets:
+      TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
+
+  restore-without-packages:
+    timeout-minutes: 30
+    runs-on: ubuntu-26.04
+    needs: gomodule-without-packages
+    permissions: {}
+    env:
+      GOPROXY: "off"
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Restore Go modules
+        uses: $/restore
+        with:
+          artifact_name: gomodule-without-packages
+
+      - name: go mod tidy
+        run: go mod tidy
+
+      - name: go build
+        run: go build ./...
+
   gotest:
     timeout-minutes: 30
     runs-on: ubuntu-26.04
