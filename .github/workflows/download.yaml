@@ -17,6 +17,12 @@ on:
         required: false
         type: string
         default: gomodule
+      ref:
+        description: |
+          The git ref to checkout. If empty, the default ref of actions/checkout is used.
+          Set this when the job restoring the modules checks out a different ref (e.g. github.event.pull_request.head.sha).
+        required: false
+        type: string
     secrets:
       TAKUMI_GUARD_BOT_ID:
         required: false
@@ -37,6 +43,7 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{inputs.ref}}
           persist-credentials: false
 
       - name: Download Go modules and upload them as artifacts
