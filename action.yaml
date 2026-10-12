@@ -42,7 +42,7 @@ runs:
 
     - name: Download Go modules
       shell: bash
-      run: go mod download all
+      run: go mod download
 
     - name: Archive Go modules
       shell: bash
