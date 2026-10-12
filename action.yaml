@@ -51,6 +51,28 @@ runs:
       run: |
         set -u
         aqua_pid=
+        aqua_log=
+
+        # Stop background processes and show the log of aqua i even if the step is cancelled or times out.
+        on_exit() {
+          if [ -n "$aqua_pid" ] && kill -0 "$aqua_pid" 2>/dev/null; then
+            echo "[WARN] stopping aqua i" >&2
+            pkill -TERM -P "$aqua_pid" 2>/dev/null || :
+            kill -TERM "$aqua_pid" 2>/dev/null || :
+          fi
+          if [ -n "${go_pid:-}" ] && kill -0 "$go_pid" 2>/dev/null; then
+            kill -TERM "$go_pid" 2>/dev/null || :
+          fi
+          if [ -n "$aqua_log" ] && [ -f "$aqua_log" ]; then
+            echo "::group::aqua i"
+            cat "$aqua_log"
+            echo "::endgroup::"
+          fi
+        }
+        trap on_exit EXIT
+        trap 'exit 130' INT
+        trap 'exit 143' TERM
+
         if [ -n "$PKGS" ]; then
           set -f
           pkgs=()
@@ -67,7 +89,7 @@ runs:
             code=0
             GOMODCACHE="$RUNNER_TEMP/download-go-module-action-aqua-gomodcache" \
               GOFLAGS="${GOFLAGS:+$GOFLAGS }-modcacherw" \
-              aqua i -a -- "${pkgs[@]}" || code=$?
+              aqua i -a -- ${pkgs[@]+"${pkgs[@]}"} || code=$?
             echo "[INFO] aqua i took $((SECONDS - start))s" >&2
             exit "$code"
           ) > "$aqua_log" 2>&1 &
@@ -76,15 +98,18 @@ runs:
 
         start=$SECONDS
         go_code=0
-        go mod download || go_code=$?
+        # Run go mod download in the background too, because bash runs traps only after the foreground command finishes,
+        # while wait returns immediately when a signal arrives.
+        go mod download &
+        go_pid=$!
+        wait "$go_pid" || go_code=$?
+        go_pid=
         echo "[INFO] go mod download took $((SECONDS - start))s" >&2
 
         aqua_code=0
         if [ -n "$aqua_pid" ]; then
           wait "$aqua_pid" || aqua_code=$?
-          echo "::group::aqua i"
-          cat "$aqua_log"
-          echo "::endgroup::"
+          aqua_pid=
         fi
 
         if [ "$go_code" -ne 0 ]; then
