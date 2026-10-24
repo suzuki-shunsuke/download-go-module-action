@@ -19,6 +19,13 @@ inputs:
   takumi_guard_bot_id:
     description: Takumi Guard Bot id
     required: false
+  go_mod_tidy:
+    description: |
+      If this is true, Go modules are downloaded by `go mod tidy -e` instead of `go mod download`.
+      Set this if the job restoring the modules runs `go mod tidy`,
+      because go mod tidy also requires modules imported by tests of dependencies, which go mod download doesn't download.
+    required: false
+    default: "false"
 runs:
   using: composite
   steps:
@@ -47,6 +54,7 @@ runs:
       shell: bash
       env:
         PKGS: ${{inputs.aqua_packages}}
+        GO_MOD_TIDY: ${{inputs.go_mod_tidy}}
         GITHUB_TOKEN: ${{github.token}}
       run: |
         set -u
@@ -96,15 +104,23 @@ runs:
           aqua_pid=$!
         fi
 
+        # go mod tidy doesn't run code of modules, so it is safe to run it in this job.
+        # -e makes go mod tidy download modules as many as possible even if the code has errors.
+        # Changes of go.mod and go.sum by go mod tidy aren't uploaded.
+        go_cmd=(go mod download)
+        if [ "$GO_MOD_TIDY" = "true" ]; then
+          go_cmd=(go mod tidy -e)
+        fi
+
         start=$SECONDS
         go_code=0
         # Run go mod download in the background too, because bash runs traps only after the foreground command finishes,
         # while wait returns immediately when a signal arrives.
-        go mod download &
+        "${go_cmd[@]}" &
         go_pid=$!
         wait "$go_pid" || go_code=$?
         go_pid=
-        echo "[INFO] go mod download took $((SECONDS - start))s" >&2
+        echo "[INFO] ${go_cmd[*]} took $((SECONDS - start))s" >&2
 
         aqua_code=0
         if [ -n "$aqua_pid" ]; then
@@ -113,7 +129,7 @@ runs:
         fi
 
         if [ "$go_code" -ne 0 ]; then
-          echo "::error::go mod download failed" >&2
+          echo "::error::${go_cmd[*]} failed" >&2
         fi
         if [ "$aqua_code" -ne 0 ]; then
           echo "::error::aqua i failed" >&2

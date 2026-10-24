@@ -37,6 +37,45 @@ jobs:
     secrets:
       TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
 
+  # Test go_mod_tidy
+  gomodule-tidy:
+    uses: $/.github/workflows/download.yaml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      artifact_name: gomodule-tidy
+      go_mod_tidy: true
+    secrets:
+      TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
+
+  restore-tidy:
+    timeout-minutes: 30
+    runs-on: ubuntu-26.04
+    needs: gomodule-tidy
+    permissions: {}
+    env:
+      GOPROXY: "off"
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Restore Go modules
+        uses: $/restore
+        with:
+          artifact_name: gomodule-tidy
+
+      - name: go mod tidy
+        run: go mod tidy
+
   restore-without-packages:
     timeout-minutes: 30
     runs-on: ubuntu-26.04
