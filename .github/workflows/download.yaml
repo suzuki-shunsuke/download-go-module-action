@@ -23,6 +23,13 @@ on:
           Set this when the job restoring the modules checks out a different ref (e.g. github.event.pull_request.head.sha).
         required: false
         type: string
+      go_mod_tidy:
+        description: |
+          If this is true, Go modules are downloaded by `go mod tidy -e` instead of `go mod download`.
+          Set this if the job restoring the modules runs `go mod tidy`.
+        required: false
+        type: boolean
+        default: false
     secrets:
       TAKUMI_GUARD_BOT_ID:
         required: false
@@ -54,3 +61,4 @@ jobs:
           aqua_version: ${{inputs.aqua_version}}
           aqua_packages: ${{inputs.aqua_packages}}
           artifact_name: ${{inputs.artifact_name}}
+          go_mod_tidy: ${{inputs.go_mod_tidy}}

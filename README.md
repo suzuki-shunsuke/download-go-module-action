@@ -92,6 +92,29 @@ jobs:
       TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
 ```
 
+### Run go mod tidy in the job restoring the modules
+
+By default, Go modules are downloaded by `go mod download`, which downloads only modules required to build packages.
+`go mod tidy` also requires modules imported by tests of dependencies, so it fails with `GOPROXY=off` in the job restoring the modules.
+If the job restoring the modules runs `go mod tidy`, set `go_mod_tidy: true` so that Go modules are downloaded by `go mod tidy -e`.
+This also downloads modules of imports that haven't been added to `go.mod` yet.
+
+```yaml
+jobs:
+  gomodule:
+    uses: suzuki-shunsuke/download-go-module-action/.github/workflows/download.yaml@main
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      go_mod_tidy: true
+    secrets:
+      TAKUMI_GUARD_BOT_ID: ${{secrets.TAKUMI_GUARD_BOT_ID}}
+```
+
+`go mod tidy` doesn't run code of modules, so it is safe to run it in the job with `id-token: write`.
+`-e` makes `go mod tidy` download as many modules as possible even if the code has errors.
+
 ### Install go-licenses with aqua
 
 This action can also install tools such as [google/go-licenses](install/aqua/imports) via `go install`.
