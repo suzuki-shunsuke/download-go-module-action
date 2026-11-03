@@ -30,13 +30,13 @@ runs:
   using: composite
   steps:
     - name: Set up Go
-      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      uses: actions/setup-go@v7.0.0
       with:
         go-version-file: ${{inputs.go-version-file}}
         cache: false
 
     - name: Set up Takumi Guard
-      uses: flatt-security/setup-takumi-guard-golang@02545d3425218766aac4dca114dcc3f6eaa0df4a # v1.3.0
+      uses: flatt-security/setup-takumi-guard-golang@v1.3.0
       with:
         bot-id: ${{inputs.takumi_guard_bot_id}}
 
@@ -154,7 +154,7 @@ runs:
         (cd "$(aqua root-dir)" && tar -czf - pkgs/go_install) > "$RUNNER_TEMP/gomodule/go_install.tar.gz"
 
     - name: Upload Go modules and go_install packages
-      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      uses: actions/upload-artifact@v7.0.2
       with:
         name: ${{inputs.artifact_name}}
         path: ${{ runner.temp }}/gomodule
